@@ -18,12 +18,52 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device {device}")
 
-    stl = STL10(root="\data", split="train", download=True)
+    stl = STL10(root="data", split="train", download=True)
     sr_dataset = SRDataset(stl, scale=4)
     loader = DataLoader(sr_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
 
     model=SRModel(scale=SCALE).to(device)
     loss_fn = nn.MSELoss()
     optimiser = torch.optim.Adam(model.parameters(),lr=LR)
+
+    for epoch in range(NUM_EPOCHS):
+        model.train()
+        total_loss = 0.0
+        num_batches = 0
+
+        progress = tqdm(loader, desc=f"Epoch {epoch+1}/{NUM_EPOCHS}")
+        for lr_batch,hr_batch in progress:
+            lr_batch = lr_batch.to(device)
+            hr_batch = hr_batch.to(device)
+            prediction = model(lr_batch)
+            loss = loss_fn(prediction,hr_batch)
+
+            optimiser.zero_grad()
+            loss.backward()
+            optimiser.step()
+
+            total_loss += loss.item()
+            num_batches += 1
+            progress.set_postfix(loss=f"{loss.item():.4f}")
+            
+        avg_loss = total_loss/num_batches
+        print(f"Epoch {epoch + 1} average loss: {avg_loss:.4f}")
+
+        torch.save(model.state_dict, f"checkpoints/epoch_{epoch+1}.pth")
+        save_sample(model, sr_dataset, device, epoch+1)
+
+def save_sample(model, dataset, device, epoch):
+    model.eval()
+    with torch.no_grad():
+        lr,hr = dataset[0]
+        lr_batched = lr.unsqueeze(0).to(device)
+        pred = model(lr_batched).squeeze(0).cpu().clamp(0, 1)
+        save_image(pred, f"outputs/epoch_{epoch}_pred.png")
+    model.train()
+        
+
+if __name__ == "__main__":
+    main()
+
     
 
