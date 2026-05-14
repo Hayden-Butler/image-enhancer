@@ -13,7 +13,7 @@ def main():
     #hyperparameters
     SCALE = 4
     BATCH_SIZE = 32
-    NUM_EPOCHS = 10
+    NUM_EPOCHS = 30
     LR = 1e-3
     NUM_WORKERS = 4
 

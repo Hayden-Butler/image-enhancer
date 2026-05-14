@@ -18,7 +18,7 @@ def main():
     SCALE = 4
     BATCH_SIZE = 32
     NUM_WORKERS = 4
-    NUM_EPOCHS_IN_TRAINING = 10
+    NUM_EPOCHS_IN_TRAINING = 30
 
     #use gpu
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -39,7 +39,7 @@ def main():
     
     #model setup
     model = SRResModel(scale=SCALE)
-    model.load_state_dict(torch.load("checkpoints/resnet_epoch_10.pth"))
+    model.load_state_dict(torch.load(f"checkpoints/resnet_epoch_{NUM_EPOCHS_IN_TRAINING}.pth"))
     model = model.to(device)
     model.eval()
 
