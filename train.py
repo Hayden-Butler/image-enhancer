@@ -9,6 +9,7 @@ from enhancer.model import SRModel
 from enhancer.dataset import SRDataset
 
 def main():
+    #hyperparameters
     SCALE = 4
     BATCH_SIZE = 32
     NUM_EPOCHS = 10
@@ -18,20 +19,26 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device {device}")
 
+    #dataloader
     stl = STL10(root="data", split="train", download=True)
     sr_dataset = SRDataset(stl, scale=4)
     loader = DataLoader(sr_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
 
+    #model setup
     model=SRModel(scale=SCALE).to(device)
     loss_fn = nn.MSELoss()
     optimiser = torch.optim.Adam(model.parameters(),lr=LR)
 
+    #training loop
     for epoch in range(NUM_EPOCHS):
         model.train()
         total_loss = 0.0
         num_batches = 0
 
+        #progress bars
         progress = tqdm(loader, desc=f"Epoch {epoch+1}/{NUM_EPOCHS}")
+        
+        #compute loss and backpropogation for the batches
         for lr_batch,hr_batch in progress:
             lr_batch = lr_batch.to(device)
             hr_batch = hr_batch.to(device)
@@ -49,10 +56,12 @@ def main():
         avg_loss = total_loss/num_batches
         print(f"Epoch {epoch + 1} average loss: {avg_loss:.4f}")
 
-        torch.save(model.state_dict, f"checkpoints/epoch_{epoch+1}.pth")
+        #save the state and images
+        torch.save(model.state_dict(), f"checkpoints/epoch_{epoch+1}.pth")
         save_sample(model, sr_dataset, device, epoch+1)
 
 def save_sample(model, dataset, device, epoch):
+    #save the model
     model.eval()
     with torch.no_grad():
         lr,hr = dataset[0]
