@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from enhancer.model import SRModel
 from enhancer.dataset import SRDataset
+from enhancer.model import SRResModel
 
 def main():
     #hyperparameters
@@ -25,7 +26,7 @@ def main():
     loader = DataLoader(sr_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, pin_memory=True)
 
     #model setup
-    model=SRModel(scale=SCALE).to(device)
+    model = SRResModel(scale=SCALE).to(device)
     loss_fn = nn.MSELoss()
     optimiser = torch.optim.Adam(model.parameters(),lr=LR)
 
@@ -57,7 +58,7 @@ def main():
         print(f"Epoch {epoch + 1} average loss: {avg_loss:.4f}")
 
         #save the state and images
-        torch.save(model.state_dict(), f"checkpoints/epoch_{epoch+1}.pth")
+        torch.save(model.state_dict(), f"checkpoints/resnet_epoch_{epoch+1}.pth")
         save_sample(model, sr_dataset, device, epoch+1)
 
 def save_sample(model, dataset, device, epoch):
@@ -67,7 +68,7 @@ def save_sample(model, dataset, device, epoch):
         lr,hr = dataset[0]
         lr_batched = lr.unsqueeze(0).to(device)
         pred = model(lr_batched).squeeze(0).cpu().clamp(0, 1)
-        save_image(pred, f"outputs/epoch_{epoch}_pred.png")
+        save_image(pred, f"outputs/resnet_epoch_{epoch}_pred.png")
     model.train()
         
 

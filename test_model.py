@@ -1,9 +1,9 @@
 import torch
-from enhancer.model import SRModel
+from enhancer.model import SRResModel
 
-model = SRModel(scale=4)
-dummy_input = torch.randn(2, 3, 24, 24)
-output = model(dummy_input)
-print(dummy_input.shape)
-print(output.shape)
-print("Trainable parameters:", sum(p.numel() for p in model.parameters()))
+model = SRResModel(scale=4, channels=64, num_blocks=8)
+dummy = torch.randn(2, 3, 24, 24)
+out = model(dummy)
+print("Input shape: ", dummy.shape)
+print("Output shape:", out.shape)
+print("Parameters:  ", sum(p.numel() for p in model.parameters()))

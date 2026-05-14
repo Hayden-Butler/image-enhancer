@@ -11,6 +11,7 @@ from torchvision.utils import make_grid
 
 from enhancer.model import SRModel
 from enhancer.dataset import SRDataset
+from enhancer.model import SRResModel
 
 def main():
     #hyperparameters
@@ -37,8 +38,8 @@ def main():
 
     
     #model setup
-    model = SRModel(scale=SCALE)
-    model.load_state_dict(torch.load(f"checkpoints/epoch_{NUM_EPOCHS_IN_TRAINING}.pth"))
+    model = SRResModel(scale=SCALE)
+    model.load_state_dict(torch.load("checkpoints/resnet_epoch_10.pth"))
     model = model.to(device)
     model.eval()
 
@@ -84,7 +85,7 @@ def main():
     stacked = torch.cat([lr_display, bicubic, model_pred, hr_batched], dim=0)
     grid = make_grid(stacked, nrow=4)
 
-    save_image(grid, "outputs/comparison.png")
+    save_image(grid, "outputs/resnet_comparison.png")
     print("Saved comparison image to outputs/comparison.png")
 
 if __name__ == "__main__":

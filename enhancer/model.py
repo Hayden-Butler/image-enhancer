@@ -1,5 +1,42 @@
 import torch.nn as nn
 
+class ResidualBlock(nn.Module):
+    def __init__(self, channels):
+        super().__init__()
+        self.relu = nn.ReLU()
+        self.conv1 = nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(in_channels=channels, out_channels=channels, kernel_size=3, padding=1)
+
+    def forward(self, x):
+        identity = x
+        out = self.conv1(x)
+        out = self.relu(out)
+        out = self.conv2(out)
+        out = identity + out
+        return out
+        
+
+class SRResModel(nn.Module):
+    def __init__(self, scale = 4, channels=64, num_blocks = 8):
+        super().__init__()
+        self.scale = scale
+        self.conv_head = nn.Conv2d(in_channels=3,out_channels=channels,kernel_size=3,padding=1)
+        #make as many channels and layers as you put in
+        self.body = nn.Sequential(*[ResidualBlock(channels) for _ in range(num_blocks)])
+        self.conv_body_end = nn.Conv2d(in_channels=channels,out_channels=channels,kernel_size=3,padding=1)
+        self.conv_upscale = nn.Conv2d(in_channels=channels,out_channels=(3*self.scale**2),kernel_size=3,padding=1)
+        self.pixel_shuffle = nn.PixelShuffle(self.scale)
+    def forward(self, x):
+        x = self.conv_head(x)
+        identity = x
+        x = self.body(x)
+        x = self.conv_body_end(x)
+        x = x + identity
+        x = self.conv_upscale(x)
+        x = self.pixel_shuffle(x)
+        return x
+
+
 class SRModel(nn.Module):
     def __init__(self, scale=4):
         super().__init__()
