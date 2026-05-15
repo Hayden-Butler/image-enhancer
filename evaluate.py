@@ -39,7 +39,7 @@ def main():
     
     #model setup
     model = SRResModel(scale=SCALE)
-    model.load_state_dict(torch.load(f"checkpoints/resnet_epoch_{NUM_EPOCHS_IN_TRAINING}.pth"))
+    model.load_state_dict(torch.load(f"checkpoints/resnet_perceptual_epoch_{NUM_EPOCHS_IN_TRAINING}.pth"))
     model = model.to(device)
     model.eval()
 
@@ -85,8 +85,8 @@ def main():
     stacked = torch.cat([lr_display, bicubic, model_pred, hr_batched], dim=0)
     grid = make_grid(stacked, nrow=4)
 
-    save_image(grid, "outputs/resnet_comparison.png")
-    print("Saved comparison image to outputs/comparison.png")
+    save_image(grid, "outputs/resnet_perceptual_comparison.png")
+    print("Saved comparison image to outputs/resnet_perceptual_comparison.png")
 
 if __name__ == "__main__":
     main()
