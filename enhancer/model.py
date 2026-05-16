@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 class ResidualBlock(nn.Module):
@@ -25,6 +26,7 @@ class SRResModel(nn.Module):
         self.body = nn.Sequential(*[ResidualBlock(channels) for _ in range(num_blocks)])
         self.conv_body_end = nn.Conv2d(in_channels=channels,out_channels=channels,kernel_size=3,padding=1)
         self.conv_upscale = nn.Conv2d(in_channels=channels,out_channels=(3*self.scale**2),kernel_size=3,padding=1)
+        icnr_init(self.conv_upscale, scale)
         self.pixel_shuffle = nn.PixelShuffle(self.scale)
     def forward(self, x):
         x = self.conv_head(x)
@@ -62,3 +64,23 @@ class SRModel(nn.Module):
         x = self.pixel_shuffle(x)
         return x
         
+def icnr_init(conv_layer, scale, init=nn.init.kaiming_normal_):
+    """
+    Initialise a conv layer that feeds into PixelShuffle.
+    """
+    out_channels = conv_layer.weight.shape[0]
+    sub_channels = out_channels // (scale ** 2)
+    
+    #Initialise a smaller weight tensor with the sub-channel count
+    sub_weight = torch.empty(sub_channels, *conv_layer.weight.shape[1:])
+    init(sub_weight)
+    
+    #Replicate it scale^2 times along the channel dimension
+    full_weight = sub_weight.repeat_interleave(scale ** 2, dim=0)
+    
+    #Copy into the conv layer's weight
+    conv_layer.weight.data.copy_(full_weight)
+    
+    #Zero the bias
+    if conv_layer.bias is not None:
+        conv_layer.bias.data.zero_()
