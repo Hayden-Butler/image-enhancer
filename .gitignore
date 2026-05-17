@@ -221,6 +221,7 @@ __marimo__/
 data/
 checkpoints/
 outputs/
+inputs/
 *.pth
 *.pt
 *.ckpt
