@@ -4,7 +4,7 @@ from PIL import Image
 from torchvision import transforms
 from torchvision.utils import save_image
 from enhancer.model import SRResModel
-
+#run with this python infer.py inputs/cat.jpg  
 
 def main():
     #arguement parser
